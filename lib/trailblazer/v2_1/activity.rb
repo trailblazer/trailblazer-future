@@ -1,3 +1,5 @@
+require "trailblazer/v2_1/activity/version"
+
 module Trailblazer::V2_1
   def self.Activity(implementation=Activity::Path, options={})
     Activity.new(implementation, state)

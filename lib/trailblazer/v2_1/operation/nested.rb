@@ -64,7 +64,7 @@ module Trailblazer::V2_1
 
         # TaskWrap step.
         def compute_nested_activity((wrap_ctx, original_args), **circuit_options)
-          ctx, original_circuit_options = original_args
+          (ctx,), original_circuit_options = original_args
 
           # TODO: evaluate the option to get the actual "object" to call.
           activity = @nested_activity.call(ctx, original_circuit_options)
@@ -73,7 +73,7 @@ module Trailblazer::V2_1
           # This is a trick so we don't have to repeat logic from #call_task here.
           wrap_ctx[:task] = Trailblazer::V2_1::Operation::Callable( activity, call: :__call__ )
 
-          [Activity::Right, [wrap_ctx, original_args]]
+          return Activity::Right, [wrap_ctx, original_args]
         end
 
         def compute_return_signal((wrap_ctx, original_args), **circuit_options)
@@ -82,7 +82,7 @@ module Trailblazer::V2_1
           wrap_ctx[:return_signal] = wrap_ctx[:return_signal].kind_of?(Railway::End::Success) ?
             @outputs[:success].signal : @outputs[:failure].signal
 
-          [Activity::Right, [wrap_ctx, original_args]]
+          return Activity::Right, [wrap_ctx, original_args]
         end
       end
     end

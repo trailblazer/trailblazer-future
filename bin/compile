@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+def compile_file(filename)
+  content = File.read(filename)
+  unless filename.include?('railtie')
+    content = content.gsub(/require "trailblazer/, 'require "trailblazer/v2_1')
+  end
+  content = content.gsub(/Trailblazer/, "Trailblazer::V2_1")
+  File.open(filename, "w") { |file| file << content }
+end
+
+Dir.glob("lib/trailblazer/v2_1/**/*.rb") do |file|
+  compile_file(file)
+end

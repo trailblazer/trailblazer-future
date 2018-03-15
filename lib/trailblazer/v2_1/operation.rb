@@ -25,7 +25,7 @@ require "trailblazer/v2_1/operation/trace"
 require "trailblazer/v2_1/operation/railway/macaroni"
 
 module Trailblazer::V2_1
-  # The Trailblazer-style operation.
+  # The Trailblazer::V2_1-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation
 

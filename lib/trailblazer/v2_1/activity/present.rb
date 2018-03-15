@@ -1,3 +1,5 @@
+require "hirb"
+
 module Trailblazer::V2_1
   class Activity < Module
     module Trace
@@ -6,13 +8,9 @@ module Trailblazer::V2_1
         module_function
 
         def tree(stack, level=1, tree=[])
-          begin
-            require 'hirb'
-            tree_for(stack, level, tree)
-            Hirb::Console.format_output(tree, class: :tree, type: :directory)
-          rescue LoadError
-            puts 'Hirb gem required for tracing the tree'
-          end
+          tree_for(stack, level, tree)
+
+          Hirb::Console.format_output(tree, class: :tree, type: :directory)
         end
 
         def tree_for(stack, level, tree)
