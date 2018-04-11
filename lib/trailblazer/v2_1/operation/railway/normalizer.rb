@@ -35,7 +35,7 @@ module Trailblazer::V2_1
 
           local_options, locals = Activity::Magnetic::Options.normalize(local_options, [:name])
           if locals[:name]
-            warn "[Trailblazer] The :name option for #step, #success and #failure has been renamed to :id."
+            warn "[Trailblazer::V2_1] The :name option for #step, #success and #failure has been renamed to :id."
             local_options = local_options.merge(id: locals[:name])
           end
 

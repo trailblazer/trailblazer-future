@@ -1,8 +1,79 @@
 #!/usr/bin/env bash
-set -euo pipefail
-IFS=$'\n\t'
-set -vx
 
-bundle install
+# bundle install
 
-# Do any other automated setup that you need to do here
+GREEN="\033[0;32m"
+WHITE="\033[0;37m"
+
+echo -e "${GREEN}Getting folders ready ${WHITE}"
+rm -r -f 'lib/trailblazer/v2_1/'
+rm -r -f 'lib/trailblazer/trailblazer'
+rm -r -f 'lib/trailblazer/trailblazer-operation'
+rm -r -f 'lib/trailblazer/trailblazer-activity'
+rm -r -f 'lib/trailblazer/trailblazer-macro'
+rm -r -f 'lib/trailblazer/trailblazer-macro-contract'
+rm -r -f 'lib/trailblazer/trailblazer-context'
+rm -r -f 'lib/trailblazer/trailblazer-rails'
+mkdir -p -m 777 'lib/trailblazer/v2_1'
+
+echo -e "${GREEN}Downloading repos ${WHITE}"
+cd 'lib/trailblazer'
+git clone https://github.com/trailblazer/trailblazer.git
+git clone https://github.com/trailblazer/trailblazer-operation.git
+git clone https://github.com/trailblazer/trailblazer-activity.git
+git clone https://github.com/trailblazer/trailblazer-macro.git
+git clone https://github.com/trailblazer/trailblazer-macro-contract.git
+git clone https://github.com/trailblazer/trailblazer-context.git
+git clone https://github.com/trailblazer/trailblazer-rails.git
+
+echo -e "${GREEN}Setup Trailblazer 2.1 folders ${WHITE}"
+cd trailblazer
+git checkout v2.1.0.beta5
+cd '..'
+cp -R 'trailblazer/lib/trailblazer/.' 'v2_1'
+cp 'trailblazer/lib/trailblazer.rb' 'v2_1'
+
+cd 'trailblazer-operation'
+git checkout v0.2.4
+cd '..'
+cp -R 'trailblazer-operation/lib/trailblazer/.' 'v2_1'
+
+cd 'trailblazer-activity'
+git checkout v0.5.1
+cd '..'
+cp -R 'trailblazer-activity/lib/trailblazer/.' 'v2_1'
+
+cd 'trailblazer-macro'
+git checkout v2.1.0.beta3
+cd '..'
+cp -R 'trailblazer-macro/lib/trailblazer/.' 'v2_1'
+
+cd 'trailblazer-macro-contract'
+git checkout v2.1.0.beta2
+cd '..'
+cp -R 'trailblazer-macro-contract/lib/trailblazer/.' 'v2_1'
+
+cd 'trailblazer-context'
+git checkout v0.1.2
+cd '..'
+cp -R 'trailblazer-context/lib/trailblazer/.' 'v2_1'
+
+cd 'trailblazer-rails'
+git checkout v2.1.1
+cd '..'
+cp -R 'trailblazer-rails/lib/trailblazer/.' 'v2_1'
+
+echo -e "${GREEN}Removing repos ${WHITE}"
+rm -r -f 'trailblazer'
+rm -r -f 'trailblazer-operation'
+rm -r -f 'trailblazer-activity'
+rm -r -f 'trailblazer-macro'
+rm -r -f 'trailblazer-macro-contract'
+rm -r -f 'trailblazer-context'
+rm -r -f 'trailblazer-rails'
+
+# run ruby script to compile TRB code
+echo -e "${GREEN}Compiling TRB folders ${WHITE}"
+cd '../..'
+ruby bin/compile
+echo -e "${GREEN}All done"
