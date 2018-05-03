@@ -55,11 +55,11 @@ module Trailblazer::V2_1
               Polarization.new( output: output, color: task.color )
             ]
           else  # ID: existing step
-            new_edge = "#{id}-#{output.signal}-#{task}"
+            new_edge = "#{id}-#{output.signal}-#{task}" # edge from <id> to <target>
 
             [
               Polarization.new( output: output, color: new_edge ),
-              [[ :magnetic_to, [ task, [new_edge] ] ]],
+              [[ :magnetic_to, [ task, [new_edge] ] ]], # mark target (`task`) as magnetic to the new edge.
             ]
           end
         end

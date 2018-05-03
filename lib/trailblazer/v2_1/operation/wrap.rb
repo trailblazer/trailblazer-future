@@ -21,7 +21,7 @@ class Trailblazer::V2_1::Operation
         return user_wrap if parameters[0] == [:req] # means ((ctx, flow_options), *, &block), "new style"
 
         ->((ctx, flow_options), **circuit_options, &block) do
-          warn "[Trailblazer] Wrap handlers have a new signature: ((ctx), *, &block)"
+          warn "[Trailblazer::V2_1] Wrap handlers have a new signature: ((ctx), *, &block)"
           user_wrap.(ctx, &block)
         end
       end

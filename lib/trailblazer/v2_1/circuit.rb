@@ -11,8 +11,10 @@ module Trailblazer::V2_1
   #
   # @see Activity
   # @api semi-private
+  #
+  # This is the "pipeline operator"'s implementation.
   class Circuit
-    def initialize(map, stop_events, name: nil, start_task: map.keys.first)
+    def initialize(map, stop_events, start_task:, name: nil)
       @map         = map
       @stop_events = stop_events
       @name        = name
@@ -33,47 +35,37 @@ module Trailblazer::V2_1
     # @param flow_options Library-specific flow control data
     # @return [last_signal, options, flow_options, *args]
     #
-    # DISCUSS: returned circuit_options are ignored when calling the runner.
-    def call(args, task: @start_task, runner: Run, **circuit_options)
+    # NOTE: returned circuit_options are discarded when calling the runner.
+    def call(args, start_task: @start_task, runner: Run, **circuit_options)
+      circuit_options = circuit_options.merge( runner: runner ).freeze # TODO: set the :runner option via arguments_for_call to save the merge?
+      task            = start_task
+
       loop do
-        last_signal, args, _ignored_circuit_options = runner.(
+        last_signal, args, _discarded_circuit_options = runner.(
           task,
           args,
-          circuit_options.merge( runner: runner ) # options for runner, to be discarded.
+          circuit_options
         )
 
         # Stop execution of the circuit when we hit a stop event (< End). This could be an task's End or Suspend.
         return [ last_signal, args ] if @stop_events.include?(task) # DISCUSS: return circuit_options here?
 
-        task = next_for(task, last_signal) do |next_task, in_map|
-          raise IllegalInputError.new("#{task}") unless in_map
-          raise IllegalOutputSignalError.new("#{@name}[#{task}][ #{last_signal.inspect} ]") unless next_task
-        end
+        task = next_for(task, last_signal) or raise IllegalSignalError.new("<#{@name}>[#{task}][ #{last_signal.inspect} ]")
       end
     end
 
     # Returns the circuit's components.
     def to_h
-      { map: @map, end_events: @stop_events }
+      { map: @map, end_events: @stop_events, start_task: @start_task }
     end
 
   private
-    def next_for(last_task, emitted_signal)
-      # p @map
-      in_map        = false
-      cfg           = @map.keys.find { |t| t == last_task } and in_map = true
-      cfg = @map[cfg] if cfg
-      cfg         ||= {}
-      next_task = cfg[emitted_signal]
-      yield next_task, in_map
-
-      next_task
+    def next_for(last_task, signal)
+      outputs = @map[last_task]
+      outputs[signal]
     end
 
-    class IllegalInputError < RuntimeError
-    end
-
-    class IllegalOutputSignalError < RuntimeError
+    class IllegalSignalError < RuntimeError
     end
   end
 end

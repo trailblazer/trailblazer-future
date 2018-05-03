@@ -6,18 +6,11 @@ module Trailblazer::V2_1
         ctx = PublicCall.options_for_public_call(*args)   # redundant with PublicCall::call.
 
         # Prepare the tracing-specific arguments. This is only run once for the entire circuit!
-        operation, (options, flow_options), circuit_options = Trailblazer::V2_1::Activity::Trace.arguments_for_call( operation, [ctx, {}], {} )
+        operation, *args = Trailblazer::V2_1::Activity::Trace.arguments_for_call( operation, [ctx, {}], {} )
 
-        circuit_options = circuit_options.merge({ argumenter: [ Trailblazer::V2_1::Activity::Introspect.method(:arguments_for_call) ] }) # this is called for every Activity.
+        last_signal, (ctx, flow_options) = Activity::TaskWrap.invoke(operation, *args )
 
-
-        last_signal, (options, flow_options) =
-          operation.__call__( # FIXME: this is the only problem.
-            [options, flow_options],
-            circuit_options
-          )
-
-        result = Railway::Result(last_signal, options)    # redundant with PublicCall::call.
+        result = Railway::Result(last_signal, ctx)    # redundant with PublicCall::call.
 
         Result.new(result, flow_options[:stack].to_a)
       end

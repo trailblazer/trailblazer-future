@@ -8,7 +8,7 @@ class Trailblazer::V2_1::Activity < Module
 
       # Call the actual task we're wrapping here.
       # puts "~~~~wrap.call: #{task}"
-      return_signal, return_args = task.( *original_args ) # we lose :exec_context here.
+      return_signal, return_args = task.(*original_args)
 
       # DISCUSS: do we want original_args here to be passed on, or the "effective" return_args which are different to original_args now?
       wrap_ctx = wrap_ctx.merge( return_signal: return_signal, return_args: return_args )

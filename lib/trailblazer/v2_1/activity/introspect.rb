@@ -1,27 +1,52 @@
 module Trailblazer::V2_1
-  class Activity < Module   # Introspection is not used at run-time except for rendering diagrams, tracing, and the like.
+  class Activity < Module
+    # Compile-time.
+    # Introspection is not used at run-time except for rendering diagrams, tracing, and the like.
     module Introspect
-      # {:argumenter} API
-      def self.arguments_for_call(activity, (options, flow_options), **circuit_options)
-        circuit_options = circuit_options.merge( introspect: activity.debug )
-
-        return activity, [ options, flow_options ], circuit_options
+      def self.Graph(*args)
+        Graph.new(*args)
       end
 
-      # {Extension} API
-      def self.add_introspection(activity, task, local_options, *returned_options)
-        activity[:debug, task] = { id: local_options[:id] || task }
+      # @private This API is still under construction.
+      class Graph
+        def initialize(activity)
+          @activity = activity
+          @circuit  = activity.to_h[:circuit]
+          @adds     = activity.to_h[:adds].compact # FIXME: why are there nils in Adds?
+        end
+
+        def find(id=nil, &block)
+          return find_by_id(id) unless block_given?
+          find_with_block(&block)
+        end
+
+        private
+
+        def find_by_id(id)
+          (_, (id, triplett)) = @adds.find { |(op, (_id, triplett))| _id == id }
+
+          Node(triplett[1], id, triplett[0])
+        end
+
+        def find_with_block(&block)
+          adds = @adds.find { |(op, (id, triplett))| yield( Node(triplett[1], id, triplett[0]) ) }
+          return nil unless adds
+
+          (op, (id, triplett)) = adds
+
+          Node(triplett[1], id, triplett[0])
+        end
+
+        def Node(*args)
+          Node.new(*args).freeze
+        end
+
+        Node = Struct.new(:task, :id, :magnetic_to)
       end
 
 
-      # @api private
-      def self.find(activity, &block)
-        circuit = activity.to_h[:circuit]
-
-        circuit.instance_variable_get(:@map).find(&block)
-      end
-
-
+      # FIXME: remove this
+      # @private This will be removed shortly.
       def self.collect(activity, options={}, &block)
         circuit      = activity.to_h[:circuit]
         circuit_hash = circuit.to_h[:map]

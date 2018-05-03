@@ -5,7 +5,7 @@ module Trailblazer::V2_1
         task = lambda do |(options, flow_options), **circuit_options|
           result = Build.(options, circuit_options, name: name, constant: constant, builder: builder)
 
-          return Activity::TaskBuilder::Binary.binary_direction_for( result, Activity::Right, Activity::Left ),
+          return Activity::TaskBuilder.binary_signal_for( result, Activity::Right, Activity::Left ),
               [options, flow_options]
         end
 
@@ -40,7 +40,7 @@ module Trailblazer::V2_1
       module DSL
         def self.extended(extender)
           extender.extend(ClassDependencies)
-          warn "[Trailblazer] Using `contract do...end` is deprecated. Please use a form class and the Builder( constant: <Form> ) option."
+          warn "[Trailblazer::V2_1] Using `contract do...end` is deprecated. Please use a form class and the Builder( constant: <Form> ) option."
         end
 
         # This is the class level DSL method.

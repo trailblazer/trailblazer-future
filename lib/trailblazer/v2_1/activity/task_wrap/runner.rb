@@ -9,7 +9,7 @@ class Trailblazer::V2_1::Activity < Module
       #
       # @api private
       # @interface Runner
-      def self.call(task, args, **circuit_options)
+      def self.call(task, args, circuit_options)
         wrap_ctx = { task: task }
 
         # this activity is "wrapped around" the actual `task`.
@@ -18,9 +18,11 @@ class Trailblazer::V2_1::Activity < Module
         # We save all original args passed into this Runner.call, because we want to return them later after this wrap
         # is finished.
         original_args = [ args, circuit_options ]
+
         # call the wrap {Activity} around the task.
         wrap_end_signal, ( wrap_ctx, _ ) = task_wrap_activity.(
-          [ wrap_ctx, original_args ] # we omit circuit_options here on purpose, so the wrapping activity uses the default, plain Runner.
+          [ wrap_ctx, original_args ], # we omit circuit_options here on purpose, so the wrapping activity uses the default, plain Runner.
+          {}
         )
 
         # don't return the wrap's end signal, but the one from call_task.
@@ -37,7 +39,10 @@ class Trailblazer::V2_1::Activity < Module
       # unnecessary computations at `call`-time since steps might not even be executed.
       # TODO: make this faster.
       def self.merge_static_with_runtime(task, wrap_runtime:, **circuit_options)
-        wrap_activity = TaskWrap.wrap_static_for(task, circuit_options)  # find static wrap for this specific task, or default wrap activity.
+        wrap_activity = TaskWrap.wrap_static_for(
+          task,
+          circuit_options
+        )  # find static wrap for this specific task, or default wrap activity.
 
         # Apply runtime alterations.
         # Grab the additional wirings for the particular `task` from `wrap_runtime` (returns default otherwise).
@@ -45,7 +50,12 @@ class Trailblazer::V2_1::Activity < Module
       end
     end # Runner
 
-    def self.wrap_static_for(task, wrap_static:, default_activity: TaskWrap.initial_activity, **)
+    # Retrieve the static wrap config from {activity}.
+    # I do not like this part too much, I'd prefer computing the {:wrap_static} at compile-time for the entire
+    # object graph (including nesteds) and simply pass it through to all Runner calls.
+    # TODO: simplify that. See above
+    def self.wrap_static_for(task, activity:, default_activity: TaskWrap.initial_activity, **)
+      wrap_static = activity[:wrap_static] || {}
       wrap_static[task] || default_activity
     end
   end

@@ -22,7 +22,7 @@ module Trailblazer::V2_1
       {
         task:      task,
         id:        id,
-        extension: [Trailblazer::V2_1::Activity::TaskWrap::Merge.new(task_wrap_extensions)],
+        Trailblazer::V2_1::Activity::DSL::Extension.new(Trailblazer::V2_1::Activity::TaskWrap::Merge.new(task_wrap_extensions)) => true,
         outputs:   operation.outputs
       }
     end
@@ -36,7 +36,7 @@ module Trailblazer::V2_1
         # The returned {Nested} instance is a valid circuit element and will be `call`ed in the circuit.
         # It simply returns the nested activity's `signal,options,flow_options` return set.
         # The actual wiring - where to go with that - is done by the step DSL.
-        return Trailblazer::V2_1::Operation::Callable(nested_operation, call: :__call__), nested_operation, false
+        return nested_operation, nested_operation, false
       end
 
       def self.nestable_object?(object)
@@ -64,16 +64,16 @@ module Trailblazer::V2_1
 
         # TaskWrap step.
         def compute_nested_activity((wrap_ctx, original_args), **circuit_options)
-          ctx, original_circuit_options = original_args
+          (ctx,), original_circuit_options = original_args
 
           # TODO: evaluate the option to get the actual "object" to call.
           activity = @nested_activity.call(ctx, original_circuit_options)
 
           # Overwrite :task so task_wrap.call_task will call this activity.
           # This is a trick so we don't have to repeat logic from #call_task here.
-          wrap_ctx[:task] = Trailblazer::V2_1::Operation::Callable( activity, call: :__call__ )
+          wrap_ctx[:task] = activity
 
-          [Activity::Right, [wrap_ctx, original_args]]
+          return Activity::Right, [wrap_ctx, original_args]
         end
 
         def compute_return_signal((wrap_ctx, original_args), **circuit_options)
@@ -82,7 +82,7 @@ module Trailblazer::V2_1
           wrap_ctx[:return_signal] = wrap_ctx[:return_signal].kind_of?(Railway::End::Success) ?
             @outputs[:success].signal : @outputs[:failure].signal
 
-          [Activity::Right, [wrap_ctx, original_args]]
+          return Activity::Right, [wrap_ctx, original_args]
         end
       end
     end

@@ -8,12 +8,13 @@ require "trailblazer/v2_1/container_chain"
 require "trailblazer/v2_1/activity"
 require "trailblazer/v2_1/activity/dsl/magnetic"
 
+
 require "trailblazer/v2_1/operation/variable_mapping"
 require "trailblazer/v2_1/operation/callable"
 
 require "trailblazer/v2_1/operation/heritage"
 require "trailblazer/v2_1/operation/public_call"      # TODO: Remove in 3.0.
-require "trailblazer/v2_1/operation/skill"
+require "trailblazer/v2_1/operation/class_dependencies"
 require "trailblazer/v2_1/operation/deprecated_macro" # TODO: remove in 2.2.
 require "trailblazer/v2_1/operation/result"
 require "trailblazer/v2_1/operation/railway"
@@ -25,7 +26,7 @@ require "trailblazer/v2_1/operation/trace"
 require "trailblazer/v2_1/operation/railway/macaroni"
 
 module Trailblazer::V2_1
-  # The Trailblazer-style operation.
+  # The Trailblazer::V2_1-style operation.
   # Note that you don't have to use our "opinionated" version with result object, skills, etc.
   class Operation
 
@@ -56,17 +57,6 @@ module Trailblazer::V2_1
     extend Activity::Interface
 
     module Process
-      # Call the actual {Process} with the options prepared in PublicCall.
-      #
-      # @private
-      def __call__(args, argumenter: [], **circuit_options)
-        @activity.( args, circuit_options.merge(
-            exec_context: new,
-            argumenter:  argumenter + [ Activity::TaskWrap.method(:arguments_for_call) ], # FIXME: should we move this outside?
-          )
-        )
-      end
-
       def to_h
         @activity.to_h.merge( activity: @activity )
       end
@@ -79,7 +69,7 @@ module Trailblazer::V2_1
     class << self
       extend Forwardable # TODO: test those helpers
       def_delegators :@activity, :Path, :Output, :End, :Track
-      def_delegators :@activity, :outputs, :debug
+      def_delegators :@activity, :outputs
 
       def step(task, options={}, &block); add_task!(:step, task, options, &block) end
       def pass(task, options={}, &block); add_task!(:pass, task, options, &block) end

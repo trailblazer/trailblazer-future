@@ -19,7 +19,7 @@ class Trailblazer::V2_1::Activity < Module
         # TODO: make this unnecessary.
         # wrap user's hash in Context if it's not one, already (in case user used options.merge).
         # DISCUSS: should we restrict user to .merge and options.Context?
-        input_ctx = Trailblazer.Context(input_ctx) if !input_ctx.instance_of?(Trailblazer::V2_1::Context) || input_ctx==original_args[0][0]
+        input_ctx = Trailblazer::V2_1.Context(input_ctx) if !input_ctx.instance_of?(Trailblazer::V2_1::Context) || input_ctx==original_args[0][0]
 
         wrap_ctx = wrap_ctx.merge( vm_original_args: original_args )
 

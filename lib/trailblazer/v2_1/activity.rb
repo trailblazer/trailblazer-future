@@ -1,8 +1,4 @@
 module Trailblazer::V2_1
-  def self.Activity(implementation=Activity::Path, options={})
-    Activity.new(implementation, state)
-  end
-
   class Activity < Module
     attr_reader :initial_state
 
@@ -49,6 +45,12 @@ module Trailblazer::V2_1
       end
     end
 
+    # Reader and writer method for DSL objects.
+    # The writer {dsl[:key] = "value"} exposes immutable behavior and will replace the old
+    # @state with a new, modified copy.
+    #
+    # Always use the DSL::Accessor accessors to avoid leaking state to other components
+    # due to mutable write operations.
     module Accessor
       def []=(*args)
         @state = State::Config.send(:[]=, @state, *args)
@@ -79,12 +81,12 @@ module Trailblazer::V2_1
     require "trailblazer/v2_1/activity/dsl/magnetic/merge"
       include Magnetic::Merge # Activity#merge!
 
-      def call(args, argumenter: [], **circuit_options) # DISCUSS: the argumenter logic might be moved out.
-        _, args, circuit_options = argumenter.inject( [self, args, circuit_options] ) { |memo, argumenter| argumenter.(*memo) }
-
-        self[:circuit].( args, circuit_options.merge(argumenter: argumenter) )
+      # @private Note that {Activity.call} is considered private until the public API is stable.
+      def call(args, circuit_options={})
+        self[:circuit].( args, circuit_options.merge(activity: self) )
       end
     end
+
   end # Activity
 end
 

@@ -38,7 +38,7 @@ class Trailblazer::V2_1::Operation
         )
       )
 
-      { task: task, id: path, extension: [extension] }
+      { task: task, id: path, Trailblazer::V2_1::Activity::DSL::Extension.new(extension) => true }
     end
   end
 end

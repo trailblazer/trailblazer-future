@@ -1,6 +1,6 @@
 class Trailblazer::V2_1::Operation
   def self.Model(model_class, action=nil, find_by_key=nil)
-    task = Trailblazer::V2_1::Activity::TaskBuilder::Binary.call(Model.new)
+    task = Trailblazer::V2_1::Activity::TaskBuilder::Binary(Model.new)
 
     extension = Trailblazer::V2_1::Activity::TaskWrap::Merge.new(
       Wrap::Inject::Defaults(
@@ -10,7 +10,7 @@ class Trailblazer::V2_1::Operation
       )
     )
 
-    { task: task, id: "model.build", extension: [extension] }
+    { task: task, id: "model.build", Trailblazer::V2_1::Activity::DSL::Extension.new(extension) => true }
   end
 
   class Model
@@ -27,7 +27,7 @@ class Trailblazer::V2_1::Operation
         action        = options["model.action"] || :new
         model_class   = options["model.class"]
         find_by_key   = options["model.find_by_key"] || :id
-        action        = :pass_through unless %i[new find_by find].include?(action)
+        action        = :pass_through unless %i[new find_by].include?(action)
 
         send("#{action}!", model_class, params, options["model.action"], find_by_key)
       end
@@ -36,18 +36,14 @@ class Trailblazer::V2_1::Operation
         model_class.new
       end
 
-      def find!(model_class, params, *)
-        model_class.find(params[:id])
-      end
-
       # Doesn't throw an exception and will return false to divert to Left.
       def find_by!(model_class, params, action, find_by_key, *)
         model_class.find_by(find_by_key.to_sym => params[find_by_key])
       end
 
-      # Call any method on the model class and pass :id.
-      def pass_through!(model_class, params, action, *)
-        model_class.send(action, params[:id])
+      # Call any method on the model class and pass find_by_key, for example find(params[:id]).
+      def pass_through!(model_class, params, action, find_by_key, *)
+        model_class.send(action, params[find_by_key])
       end
     end
   end

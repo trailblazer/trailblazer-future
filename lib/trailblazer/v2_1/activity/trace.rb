@@ -22,13 +22,10 @@ module Trailblazer::V2_1
         return activity, [ options, flow_options.merge(tracing_flow_options) ], circuit_options.merge(tracing_circuit_options)
       end
 
-      def self.call(activity, (options, flow_options), *args)
-        activity, (options, flow_options), circuit_options = Trace.arguments_for_call( activity, [options, flow_options], {} ) # only run once for the entire circuit!
+      def self.call(activity, (options, flow_options), circuit_options={})
+        activity, (options, flow_options), circuit_options = Trace.arguments_for_call( activity, [options, flow_options], circuit_options ) # only run once for the entire circuit!
         last_signal, (options, flow_options) =
-          activity.(
-            [options, flow_options],
-            circuit_options.merge({ argumenter: [ Introspect.method(:arguments_for_call), TaskWrap.method(:arguments_for_call) ] })
-          )
+          Activity::TaskWrap.invoke(activity, [options, flow_options], circuit_options)
 
         return flow_options[:stack].to_a, last_signal, [options, flow_options]
       end
@@ -48,7 +45,7 @@ module Trailblazer::V2_1
         end
       end
 
-      Entity = Struct.new(:task, :type, :value, :value2, :introspection)
+      Entity = Struct.new(:task, :activity, :type, :value, :value2)
 
       # Mutable/stateful per design. We want a (global) stack!
       class Stack

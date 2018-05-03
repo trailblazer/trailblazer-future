@@ -1,4 +1,3 @@
-
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "trailblazer/future/version"
@@ -23,13 +22,12 @@ Gem::Specification.new do |spec|
       "public gem pushes."
   end
 
-  spec.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test)/})
-  end
+  spec.files         = `git ls-files -z`.split("\x0")
   spec.require_paths = ["lib"]
 
   # Legacy gems
   spec.add_dependency "trailblazer", "~> 2.0.7"
+  spec.add_dependency "hirb"
 
   spec.add_development_dependency "minitest", "~> 5.0"
 

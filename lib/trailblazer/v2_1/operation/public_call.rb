@@ -1,5 +1,5 @@
-class Trailblazer::V2_1::Operation
-  module PublicCall
+module Trailblazer::V2_1
+  module Operation::PublicCall
     # This is the outer-most public `call` method that gets invoked when calling `Create.()`.
     # The signature of this is `params, options, *containers`. This was a mistake, as the
     # first argument could've been part of `options` hash in the first place.
@@ -14,13 +14,29 @@ class Trailblazer::V2_1::Operation
     # @note Do not override this method as it will be removed in future versions. Also, you will break tracing.
     # @return Operation::Railway::Result binary result object
     def call(*args)
-      ctx = PublicCall.options_for_public_call(*args)
+      return call_with_circuit_interface(*args) if args.any? && args[0].is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
+      call_with_public_interface(*args)
+    end
+
+    def call_with_public_interface(*args)
+      ctx = Operation::PublicCall.options_for_public_call(*args)
 
       # call the activity.
-      last_signal, (options, flow_options) = __call__( [ctx, {}] ) # Railway::call # DISCUSS: this could be ::call_with_context.
+      # This will result in invoking {::call_with_circuit_interface}.
+      last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Railway::Result(last_signal, options, flow_options)
+      Operation::Railway::Result(last_signal, options, flow_options)
+    end
+
+    # This interface is used for all nested OPs (and the outer-most, too).
+    def call_with_circuit_interface(args, circuit_options)
+      @activity.(
+        args,
+        circuit_options.merge(
+          exec_context: new
+        )
+      )
     end
 
     # Compile a Context object to be passed into the Activity::call.
