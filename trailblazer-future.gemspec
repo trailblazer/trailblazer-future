@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.summary       = %q{}
   spec.description   = %q{}
   spec.homepage      = "https://github.com/trailblazer/trailblazer-future"
-  spec.license       = "MIT"
+  spec.license       = "LGPL-3.0"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
