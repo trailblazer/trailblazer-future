@@ -38,7 +38,7 @@ module Trailblazer::V2_1
     module DSLHelper
       extend Forwardable
       def_delegators :@builder, :Path
-      def_delegators DSL::Helper, :Output, :End, :Subprocess, :Track
+      def_delegators DSL, :Output, :End, :Subprocess, :Track
 
       def Path(*args, &block)
         self[:builder].Path(*args, &block)
@@ -105,6 +105,7 @@ require "trailblazer/v2_1/activity/task_wrap/call_task"
 require "trailblazer/v2_1/activity/task_wrap/trace"
 require "trailblazer/v2_1/activity/task_wrap/runner"
 require "trailblazer/v2_1/activity/task_wrap/merge"
+require "trailblazer/v2_1/activity/task_wrap/variable_mapping"
 
 require "trailblazer/v2_1/activity/trace"
 require "trailblazer/v2_1/activity/present"
