@@ -26,10 +26,10 @@ class SongsController < ApplicationController
   end
 
   def update
-    run Song::Update do |result|
+    run_v2_1 Song::Update do |result|
       return redirect_to song_path(result[:model].id)
     end
 
-    render :update
+    render_v2_1 :update
   end
 end
