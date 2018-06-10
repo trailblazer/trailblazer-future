@@ -1,7 +1,8 @@
 PATH
   remote: ../..
   specs:
-    trailblazer-future (2.1.0.pre)
+    trailblazer-future (2.1.0.pre2)
+      hirb
       trailblazer (~> 2.0.7)
 
 GEM
@@ -72,7 +73,7 @@ GEM
     declarative-builder (0.1.0)
       declarative-option (< 0.2.0)
     declarative-option (0.1.0)
-    disposable (0.4.3)
+    disposable (0.4.4)
       declarative (>= 0.0.9, < 1.0.0)
       declarative-builder (< 0.2.0)
       declarative-option (< 0.2.0)
@@ -83,7 +84,8 @@ GEM
     erubis (2.7.0)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    i18n (1.0.0)
+    hirb (0.7.3)
+    i18n (1.0.1)
       concurrent-ruby (~> 1.0)
     loofah (2.2.2)
       crass (~> 1.0.2)
@@ -175,9 +177,9 @@ GEM
       declarative
       pipetree (>= 0.1.1, < 0.2.0)
       uber
-    trailblazer-rails (1.0.7)
+    trailblazer-rails (1.0.9)
       reform-rails (>= 0.1.4, < 0.2.0)
-      trailblazer (>= 2.0.0, < 2.1.0)
+      trailblazer (~> 2.0.0)
       trailblazer-loader (>= 0.1.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
@@ -205,4 +207,4 @@ DEPENDENCIES
   trailblazer-rails
 
 BUNDLED WITH
-   1.16.1
+   1.16.2

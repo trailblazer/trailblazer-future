@@ -1,4 +1,3 @@
-require "trailblazer/v2_1/option"
 # TODO: mark/make all but mutable_options as frozen.
 # The idea of Skill is to have a generic, ordered read/write interface that
 # collects mutable runtime-computed data while providing access to compile-time
@@ -45,7 +44,7 @@ module Trailblazer::V2_1
     def merge(hash)
       original, mutable_options = decompose
 
-      Trailblazer::V2_1::Context( original, mutable_options.merge(hash) )
+      ctx = Trailblazer::V2_1::Context( original, mutable_options.merge(hash) )
     end
 
     # Return the Context's two components. Used when computing the new output for

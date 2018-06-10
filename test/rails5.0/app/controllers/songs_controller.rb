@@ -8,8 +8,8 @@ class SongsController < ApplicationController
   end
 
   def create
-    run Song::Create do |result|
-      return redirect_to song_path(result["model"].id)
+    run Song::Create do
+      return redirect_to song_path(@model.id)
     end
 
     render :new
@@ -18,16 +18,16 @@ class SongsController < ApplicationController
   def new_with_result
     result = run Song::New
 
-    @class = result["model"].class
+    @class = @model.class
   end
 
   def edit
-    run Song::Update::Present
+    run_v21 Song::Update::Present
   end
 
   def update
-    run Song::Update do |result|
-      return redirect_to song_path(result[:model].id)
+    run_v21 Song::Update do
+      return redirect_to song_path(@model.id)
     end
 
     render :update
