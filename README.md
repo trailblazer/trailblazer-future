@@ -3,13 +3,13 @@ Master: [![Build Status](https://travis-ci.org/trailblazer/trailblazer-future.sv
 
 ## Installation
 
-- Step 1 
+- Step 1
 
 Update `trailblazer` to it latest patch version `~> 2.0.7`
 
 - Step 2
 
-Test your build and remove any deprecation warning 
+Test your build and remove any deprecation warning
 
 - Optional step (recommended)
 
@@ -25,9 +25,17 @@ gem 'trailblazer-future'
 
 ## Usage
 
-- Inherit or migrate operations to `Trailblazer::V2_1::Operation`
-- Fix tests and code with the API, using `params:` and `[:model]`
-- Improve code using new `wiring API`
+1) Inherit operation from `Trailblazer::V2_1::Operation`
+```ruby
+class MyOP < Trailblazer::V2_1::Operation
+end
+```
+2) Migrate to TRB 2.1 following the [migration path](http://trailblazer.to/api-docs/#trailblazer-migration-path), here a quick summary of the breaking changes:
+    - new API using keyword arguments: `MyOP.(params)` -> `MyOp.(params: params)` (more [here](http://trailblazer.to/api-docs/#operation-call))
+    - using `symbol` instead of `string` for `:model` and `:current_user`: `result['model']` -> `result[:model]`
+    - Replace `Railway::Right/Left` with `Trailblazer::Activity::Right/Left`
+    - Add option `fast_track: true` for the steps that uses `pass_fast!` or `fail_fast!` (check the new [wiring API](http://trailblazer.to/api-docs/#activity-wiring-api))
+    - Nested macro now gets the all result object so use `:input` and `:output` to filter data in/out
 
 ## Notes
 
