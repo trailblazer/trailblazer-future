@@ -35,7 +35,7 @@ module Trailblazer::V2_1
       #
       # Output(:success) => Path() {}
       def Path(*args)
-        Activity::DSL::Helper.Path(@normalizer, *args)
+        Activity::DSL.Path(@normalizer, *args)
       end
 
       # Public top-level entry point.
