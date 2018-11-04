@@ -1,5 +1,6 @@
 # Trailblazer::Future
-Master: [![Build Status](https://travis-ci.org/trailblazer/trailblazer-future.svg)](https://travis-ci.org/trailblazer/trailblazer-future)
+[![Build Status](https://travis-ci.org/trailblazer/trailblazer-future.svg)](https://travis-ci.org/trailblazer/trailblazer-future)
+[![Gem Version](https://badge.fury.io/rb/trailblazer-future.svg)](http://badge.fury.io/rb/trailblazer-future)
 
 ## Installation
 
