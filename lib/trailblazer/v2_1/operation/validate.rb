@@ -5,24 +5,26 @@ module Trailblazer::V2_1
       # result.contract.errors = {..}
       # Deviate to left track if optional key is not found in params.
       # Deviate to left if validation result falsey.
-      def self.Validate(skip_extract: false, name: "default", representer: false, key: nil) # DISCUSS: should we introduce something like Validate::Deserializer?
+      def self.Validate(skip_extract: false, name: "default", representer: false, key: nil, constant: nil) # DISCUSS: should we introduce something like Validate::Deserializer?
         params_path = "contract.#{name}.params" # extract_params! save extracted params here.
 
         extract  = Validate::Extract.new( key: key, params_path: params_path ).freeze
-        validate = Validate.new( name: name, representer: representer, params_path: params_path ).freeze
+        validate = Validate.new( name: name, representer: representer, params_path: params_path, constant: constant ).freeze
 
         # Build a simple Railway {Activity} for the internal flow.
         activity = Module.new do
           extend Activity::Railway(name: "Contract::Validate")
 
-          step extract,  id: "#{params_path}_extract" unless skip_extract || representer
+          step extract,  id: "#{params_path}_extract", Activity::DSL.Output(:failure) => Activity::DSL.End(:extract_failure) unless skip_extract || representer
           step validate, id: "contract.#{name}.call"
         end
 
-        # activity, _ = activity.decompose
+        options = { task: activity, id: "contract.#{name}.validate", outputs: activity.outputs}
 
-        # DISCUSS: use Nested here?
-        { task: activity, id: "contract.#{name}.validate", outputs: activity.outputs }
+        # Deviate End.extract_failure to the standard failure track as a default. This can be changed from the user side.
+        options = options.merge(Activity::DSL.Output(:extract_failure) => Activity::DSL.Track(:failure)) unless skip_extract
+
+        options
       end
 
       class Validate
@@ -37,8 +39,8 @@ module Trailblazer::V2_1
           end
         end
 
-        def initialize(name:"default", representer:false, params_path:nil)
-          @name, @representer, @params_path = name, representer, params_path
+        def initialize(name:"default", representer:false, params_path:nil, constant: nil)
+          @name, @representer, @params_path, @constant = name, representer, params_path, constant
         end
 
         # Task: Validates contract `:name`.
@@ -52,7 +54,7 @@ module Trailblazer::V2_1
 
         def validate!(options, representer:false, from: :document, params_path:nil)
           path     = "contract.#{@name}"
-          contract = options[path]
+          contract = @constant || options[path]
 
           # this is for 1.1-style compatibility and should be removed once we have Deserializer in place:
           options["result.#{path}"] = result =

@@ -9,3 +9,4 @@
 .idea
 *.iml
 gems.locked
+test/**/Gemfile.lock

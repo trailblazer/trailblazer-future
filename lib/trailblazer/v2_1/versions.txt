@@ -1,0 +1,7 @@
+'trailblazer' => 'v2.1.0.rc1'
+'trailblazer-activity' => 'v0.7.1'
+'trailblazer-context' => 'v0.1.2'
+'trailblazer-macro' => 'v2.1.0.rc1'
+'trailblazer-macro-contract' => 'v2.1.0.rc1'
+'trailblazer-operation' => 'v0.4.1'
+'trailblazer-rails' => 'v2.1.6'
