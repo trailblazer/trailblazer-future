@@ -5,7 +5,7 @@ module Trailblazer::V2_1
     module Loader
       extend ActiveSupport::Concern
 
-      included do # rubocop:disable Metrics/BlockLength
+      included do
         def self.load_concepts(app)
           load_for(app)
 
@@ -21,13 +21,13 @@ module Trailblazer::V2_1
         end
 
         # Prepend model file, before the concept files like operation.rb get loaded.
-        ModelFile = lambda do |input, options|
+        ModelFile = ->(input, options) do
           model = "app/models/#{options[:name]}.rb"
           File.exist?(model) ? [model] + input : input
         end
 
         # Load all model files before any TRB files.
-        AllModelFiles = lambda do |input, options|
+        AllModelFiles = ->(input, options) do
           Dir.glob("#{options[:root]}/app/models/**/*.rb").sort + input
         end
 
@@ -40,10 +40,10 @@ module Trailblazer::V2_1
           # the trb autoloading has to be run after initializers have been loaded, so we can tweak inclusion of features in
           # initializers.
 
-          # TODO: remove me in the next version!
+          # TODO: remove me in v2.2.0
           if config.trailblazer.use_loader.to_s.present?
             warn "DEPRECATION WARNING [trailblazer-rails]: please use config.trailblazer.enable_loader" \
-                 " to enable/disable the loader. config.trailblazer.use_loader will be removed from version > 2.1.6"
+                 " to enable/disable the loader, config.trailblazer.use_loader will be removed from version 2.2.0"
           end
 
           if config.trailblazer.enable_loader || config.trailblazer.use_loader

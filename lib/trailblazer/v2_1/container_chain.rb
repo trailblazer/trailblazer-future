@@ -1,5 +1,6 @@
 # @private
-class Trailblazer::V2_1::Context::ContainerChain # used to be called Resolver.
+# used to be called Resolver.
+class Trailblazer::V2_1::Context::ContainerChain
   # Keeps a list of containers. When looking up a key/value, containers are traversed in
   # the order they were added until key is found.
   #
@@ -28,11 +29,12 @@ class Trailblazer::V2_1::Context::ContainerChain # used to be called Resolver.
 
   def keys
     @containers.collect(&:keys).flatten
-end
+  end
 
   # @private
   def to_hash
-    return @to_hash.(@containers) if @to_hash # FIXME: introduce pattern matching so we can have different "transformers" for each container type.
+    # FIXME: introduce pattern matching so we can have different "transformers" for each container type.
+    return @to_hash.(@containers) if @to_hash
     @containers.each_with_object({}) { |container, hash| hash.merge!(container.to_hash) }
   end
 end

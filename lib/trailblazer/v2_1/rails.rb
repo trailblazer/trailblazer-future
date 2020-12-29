@@ -1,4 +1,4 @@
-require "trailblazer/v2_1/rails/version"
+
 
 module Trailblazer::V2_1
   module Rails

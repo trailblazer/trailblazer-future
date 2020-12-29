@@ -3,7 +3,7 @@ module Trailblazer::V2_1::Rails::Controller::Cell
 
   module Render
     def render(cell = nil, options = {}, *, &block)
-      return super unless cell.kind_of?(::Cell::ViewModel)
+      return super unless cell.kind_of?(::Cell::ViewModel) # rubocop:disable Style/ClassCheck
 
       render_cell(cell, options)
     end

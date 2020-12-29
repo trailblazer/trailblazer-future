@@ -1,40 +1,59 @@
 module Trailblazer::V2_1
-  class Activity < Module
+  class Activity
     #
     # Example with tracing:
     #
-          # Call the task_wrap circuit:
-        #   |-- Start
-        #   |-- Trace.capture_args   [optional]
-        #   |-- Call (call actual task) id: "task_wrap.call_task"
-        #   |-- Trace.capture_return [optional]
-        #   |-- Wrap::End
+    # Call the task_wrap circuit:
+    #   |-- Start
+    #   |-- Trace.capture_args   [optional]
+    #   |-- Call (call actual task) id: "task_wrap.call_task"
+    #   |-- Trace.capture_return [optional]
+    #   |-- Wrap::End
     module TaskWrap
-      # The actual activity that implements the taskWrap.
-      def self.initial_activity
-        Module.new do
-          extend Trailblazer::V2_1::Activity::Path(
-            name:             "taskWrap",
-            normalizer_class: Magnetic::DefaultNormalizer,
-            plus_poles:       Magnetic::PlusPoles.initial( :success => Magnetic::Builder::Path.default_outputs[:success] ) # DefaultNormalizer doesn't give us default PlusPoles.
-          )
-
-          task TaskWrap.method(:call_task), id: "task_wrap.call_task" # ::call_task is defined in task_wrap/call_task.
-        end
-      end
+      module_function
 
       # Compute runtime arguments necessary to execute a taskWrap per task of the activity.
-      def self.invoke(activity, args, wrap_runtime: {}, **circuit_options)
+      def invoke(activity, args, wrap_runtime: {}, **circuit_options)
         circuit_options = circuit_options.merge(
           runner:       TaskWrap::Runner,
           wrap_runtime: wrap_runtime,
-
-          activity: { adds: [], circuit: {} }, # for Runner
+          activity:     {wrap_static: {activity => initial_wrap_static}, nodes: {}}, # for Runner. Ideally we'd have a list of all static_wraps here (even nested).
         )
 
         # signal, (ctx, flow), circuit_options =
-        Runner.(activity, args, circuit_options)
+        Runner.(activity, args, **circuit_options)
+      end
+
+      # {:extension} API
+      # Extend the static taskWrap from a macro or DSL call.
+      # Gets executed in {Intermediate.call} which also provides {config}.
+
+      def initial_wrap_static(*)
+        # return initial_sequence
+        TaskWrap::Pipeline.new([["task_wrap.call_task", TaskWrap.method(:call_task)]])
+      end
+
+      # Use this in your macros if you want to extend the {taskWrap}.
+      def Extension(merge:)
+        Extension.new(merge: Pipeline::Merge.new(*merge))
+      end
+
+      class Extension
+        def initialize(merge:)
+          @merge = merge
+        end
+
+        def call(config:, task:, **)
+          before_pipe = State::Config.get(config, :wrap_static, task.circuit_task)
+
+          State::Config.set(config, :wrap_static, task.circuit_task, @merge.(before_pipe))
+        end
       end
     end # TaskWrap
   end
 end
+require "trailblazer/v2_1/activity/task_wrap/pipeline"
+require "trailblazer/v2_1/activity/task_wrap/call_task"
+require "trailblazer/v2_1/activity/task_wrap/runner"
+require "trailblazer/v2_1/activity/task_wrap/variable_mapping"
+require "trailblazer/v2_1/activity/task_wrap/inject"

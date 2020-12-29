@@ -1,25 +1,34 @@
 # Dependencies can be defined on the operation. class level
 class Trailblazer::V2_1::Operation
-  module Skill
-    # The class-level skill container: Operation::[], ::[]=.
-    module Accessors
-      # :private:
-      def skills
-        @skills ||= {}
-      end
-
-      extend Forwardable
-      def_delegators :skills, :[], :[]=
-    end
-  end
-
-  # The use of this module is not encouraged and it is only here for backward-compatibility.
+  # The use of this module is currently not encouraged and it is only here for backward-compatibility.
   # Instead, please pass dependencies via containers, locals, or macros into the respective steps.
   module ClassDependencies
-    def call_with_circuit_interface( (ctx, flow_options), **circuit_options )
-      @skills.each { |name, value| ctx[name] ||= value } # this resembles the behavior in 2.0. we didn't say we liked it.
+    def [](field)
+      @state.to_h[:fields][field]
+    end
 
-      super
+    def []=(field, value)
+      options = @state.to_h[:fields].merge(field => value)
+      @state.update_options(options)
+    end
+
+    def options_for_public_call(options, **flow_options)
+      ctx = super
+      context_for_fields(class_fields, [ctx, flow_options], {})
+    end
+
+    private def class_fields
+      @state.to_h[:fields]
+    end
+
+    private def context_for_fields(fields, (ctx, flow_options), **)
+      ctx_with_fields = Trailblazer::V2_1::Context(fields, ctx, flow_options[:context_options]) # TODO: redundant to otions_for_public_call.
+    end
+
+    def call_with_circuit_interface((ctx, flow_options), **circuit_options)
+      ctx_with_fields = context_for_fields(class_fields, [ctx, flow_options], circuit_options)
+
+      super([ctx_with_fields, flow_options], circuit_options) # FIXME: should we unwrap here?
     end
   end
 end
