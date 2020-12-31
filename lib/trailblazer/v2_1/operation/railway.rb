@@ -5,6 +5,10 @@ module Trailblazer::V2_1
   class Operation
     # End event: All subclasses of End:::Success are interpreted as "success".
     module Railway
+      def self.fail!     ; Activity::Left  end
+      def self.pass!     ; Activity::Right end
+      def self.fail_fast!; Activity::FastTrack::FailFast end
+      def self.pass_fast!; Activity::FastTrack::PassFast end
       # @param options Context
       # @param end_event The last emitted signal in a circuit is usually the end event.
       def self.Result(end_event, options, *)
@@ -23,10 +27,9 @@ module Trailblazer::V2_1
       end
 
       module End
-        class Success < Activity::End; end
-        class Failure < Activity::End; end
+        Success = Activity::Railway::End::Success
+        Failure = Activity::Railway::End::Failure
       end
-
     end # Railway
   end
 end

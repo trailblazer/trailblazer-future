@@ -1,11 +1,28 @@
-require "trailblazer/v2_1/operation"
+require "forwardable"
+require "trailblazer/v2_1/activity"
+require "trailblazer/v2_1/activity/dsl/linear"
+require "trailblazer/v2_1/operation" # TODO: remove this dependency
 
-require "trailblazer/v2_1/operation/inject"
+require "trailblazer/v2_1/macro/model"
+require "trailblazer/v2_1/macro/policy"
+require "trailblazer/v2_1/macro/guard"
+require "trailblazer/v2_1/macro/pundit"
+require "trailblazer/v2_1/macro/nested"
+require "trailblazer/v2_1/macro/rescue"
+require "trailblazer/v2_1/macro/wrap"
 
-require "trailblazer/v2_1/operation/model"
-require "trailblazer/v2_1/operation/policy"
-require "trailblazer/v2_1/operation/guard"
-require "trailblazer/v2_1/operation/pundit"
-require "trailblazer/v2_1/operation/nested"
-require "trailblazer/v2_1/operation/rescue"
-require "trailblazer/v2_1/operation/wrap"
+module Trailblazer::V2_1
+  module Macro
+  end
+
+  # All macros sit in the {Trailblazer::V2_1::Macro} namespace, where we forward calls from
+  # operations and activities to.
+  module Activity::DSL::Linear::Helper
+    Policy = Trailblazer::V2_1::Macro::Policy
+
+    module ClassMethods
+      extend Forwardable
+      def_delegators Trailblazer::V2_1::Macro, :Model, :Nested, :Wrap, :Rescue
+    end # ClassMethods
+  end # Helper
+end

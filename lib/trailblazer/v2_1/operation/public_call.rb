@@ -13,43 +13,46 @@ module Trailblazer::V2_1
     #
     # @note Do not override this method as it will be removed in future versions. Also, you will break tracing.
     # @return Operation::Railway::Result binary result object
-    def call(*args)
-      return call_with_circuit_interface(*args) if args.any? && args[0].is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
-      call_with_public_interface(*args)
+    def call(options = {}, *args)
+      return call_with_circuit_interface(options, *args) if options.is_a?(Array) # This is kind of a hack that could be well hidden if Ruby had method overloading. Goal is to simplify the call/__call__ thing as we're fading out Operation::call anyway.
+
+      call_with_public_interface(options, *args)
     end
 
     def call_with_public_interface(*args)
-      ctx = Operation::PublicCall.options_for_public_call(*args)
+      ctx = options_for_public_call(*args, flow_options())
 
       # call the activity.
       # This will result in invoking {::call_with_circuit_interface}.
-      last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
+      # last_signal, (options, flow_options) = Activity::TaskWrap.invoke(self, [ctx, {}], {})
+      signal, (ctx, flow_options) = Activity::TaskWrap.invoke(
+        @activity,
+        [ctx, flow_options()],
+        exec_context: new
+      )
 
       # Result is successful if the activity ended with an End event derived from Railway::End::Success.
-      Operation::Railway::Result(last_signal, options, flow_options)
+      Operation::Railway::Result(signal, ctx, flow_options)
     end
 
     # This interface is used for all nested OPs (and the outer-most, too).
     def call_with_circuit_interface(args, circuit_options)
-      @activity.(
-        args,
-        circuit_options.merge(
-          exec_context: new
-        )
-      )
+      strategy_call(args, circuit_options) # FastTrack#call
+    end
+
+    def options_for_public_call(*args)
+      Operation::PublicCall.options_for_public_call(*args)
     end
 
     # Compile a Context object to be passed into the Activity::call.
     # @private
-    def self.options_for_public_call(options={}, *containers)
-      # generate the skill hash that embraces runtime options plus potential containers, the so called Runtime options.
-      # This wrapping is supposed to happen once in the entire system.
+    def self.options_for_public_call(options, **flow_options)
+      Trailblazer::V2_1::Context(options, {}, flow_options[:context_options])
+    end
 
-      hash_transformer = ->(containers) { containers[0].to_hash } # FIXME: don't transform any containers into kw args.
-
-      immutable_options = Trailblazer::V2_1::Context::ContainerChain.new( [options, *containers], to_hash: hash_transformer ) # Runtime options, immutable.
-
-      ctx = Trailblazer::V2_1::Context(immutable_options)
+    # @semi=public
+    def flow_options
+      {}
     end
   end
 end
