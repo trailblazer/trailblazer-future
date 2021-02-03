@@ -31,11 +31,11 @@ gem 'trailblazer-future'
 class MyOP < Trailblazer::V2_1::Operation
 end
 ```
-2) Migrate to TRB 2.1 following the [migration path](http://trailblazer.to/api-docs/#trailblazer-migration-path), here a quick summary of the breaking changes:
-    - new API using keyword arguments: `MyOP.(params)` -> `MyOp.(params: params)` (more [here](http://trailblazer.to/api-docs/#operation-call))
+2) Migrate to TRB 2.1 following the [migration path](http://2019.trailblazer.to/2.1/docs/trailblazer.html#trailblazer-2-1-migration), here a quick summary of the breaking changes:
+    - new API using keyword arguments: `MyOP.(params)` -> `MyOp.(params: params)` (more [here](http://2019.trailblazer.to/2.1/docs/trailblazer.html#trailblazer-2-1-migration-call-api-operation-call))
     - using `symbol` instead of `string` for `:model` and `:current_user`: `result['model']` -> `result[:model]`
     - Replace `Railway::Right/Left` with `Trailblazer::Activity::Right/Left`
-    - Add option `fast_track: true` for the steps that uses `pass_fast!` or `fail_fast!` (check the new [wiring API](http://trailblazer.to/api-docs/#activity-wiring-api))
+    - Add option `fast_track: true` for the steps that uses `pass_fast!` or `fail_fast!` (check the new [wiring API](http://2019.trailblazer.to/2.1/docs/trailblazer.html#trailblazer-2-1-migration-call-api-pass_fast-fail_fail))
     - Nested macro now gets the all result object so use `:input` and `:output` to filter data in/out
 
 ## Notes
